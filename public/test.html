@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script
+    src="http://code.jquery.com/jquery-3.2.1.min.js"
+    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
+</head>
+<body>
+    <form action="">
+        <input type="file" id="img">
+        <button id="btn">提交</button>
+    </form>
+</body>
+<script>
+ $(function(){
+
+    var reader = new FileReader();
+        reader.addEventListener("load", function(e) {
+            //每10M切割一段,这里只做一个切割演示，实际切割需要循环切割，
+            var slice = e.target.result.slice(0, 10*1024*1024);
+            console.log(slice);
+            var formdata = new FormData();
+            formdata.append('abc', slice);
+            //这里是有一个坑的，部分设备无法获取文件名称，和文件类型，这个在最后给出解决方案
+            // formdata.append('filename', file.filename);
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener('load', function() {
+                //xhr.responseText
+            });
+            xhr.open('POST', '/upload1');
+            xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+            // xhr.setRequestHeader("Content-Type","multipart/form-data");
+            xhr.send(formdata);
+        });
+
+
+    var input = document.querySelector('input');
+    input.addEventListener('change', function() {
+        var file = this.files[0];
+        console.log(file);
+        reader.readAsArrayBuffer(file);
+    });
+ })
+</script>
+</html>

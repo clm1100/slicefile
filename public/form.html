@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+    <script src="http://wzrd.in/standalone/uuid%2Fv1@latest"></script>
+</head>
+
+<body>
+    <form action="/upload2" method="post" enctype="multipart/form-data">
+        <input name="test" type="file" id="img">
+        <button id="btn">提交111</button>
+        <input type="submit">
+    </form>
+</body>
+<script>
+    function p(formdata) {
+        return new Promise(function (resolve, reject) {
+            $.ajax({
+                url: "/upload2",
+                type: "POST",
+                data: formdata, //刚刚构建的form数据对象
+                async: true, //异步
+                processData: false, //很重要，告诉jquery不要对form进行处理
+                contentType: false, //很重要，指定为false才能形成正确的Content-Type
+                success: function (data) {
+                    resolve(data);
+                }
+            })
+        })
+    }
+
+    $(function () {
+
+        var reader = new FileReader();
+        reader.addEventListener("load", function (e) {
+            //每10M切割一段,这里只做一个切割演示，实际切割需要循环切割，
+            var chunksize = 1 * 1024 * 1024;
+            var blob = new Blob([e.target.result]);
+            var count = Math.ceil(blob.size / chunksize);
+            var uuidfolder = uuidv1();
+
+            var arr = []
+            async function main() {
+                for (let i = 0; i < count; i++) {
+                    var slice = blob.slice(i * chunksize, (i + 1) * chunksize);
+                    var formdata = new FormData();
+                    formdata.append('imgname', uuidfolder);
+                    formdata.append('imgorder', i);
+                    formdata.append('img', slice);
+                    var a = await p(formdata);
+                    arr.push(a);
+
+
+                }
+            }
+            main().then(function () {
+                console.log(arr);
+            })
+        });
+
+
+        var input = document.querySelector('input');
+        input.addEventListener('change', function () {
+            var file = this.files[0];
+            console.log(file);
+            reader.readAsArrayBuffer(file);
+        });
+    })
+</script>
+
+</html>
