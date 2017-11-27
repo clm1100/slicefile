@@ -39,8 +39,6 @@ router.post('/upload2', function (req, res, next) {
   });
 
   form.parse(req, function (err, fields, file) {
-    console.log(fields);
-    console.log(file);
     let imgname = fields.imgname;
     let imgorder = fields.imgorder;
     let imgpath = path.join(__dirname,'..','public/uploads',imgname);
