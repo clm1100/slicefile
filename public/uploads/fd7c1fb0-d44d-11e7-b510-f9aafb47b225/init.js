@@ -18,14 +18,12 @@ fs.readdir(path.join(__dirname),function(err,data){
 		}
 	});
 	console.log(arr);
-	let arr2 = arr.map((e)=>{
-		return p(path.join(__dirname,e)
-	});
+	let arr2 = arr.map(e=>path.join(__dirname,e));
 	console.log(arr2)
-	// concat(, '/to/destination', function(err) {
- //    if (err) throw err
- //    console.log('done');
- //  });
+	concat(arr2, './a.jpg', function(err) {
+    if (err) throw err
+    console.log('done');
+  });
 
 
 
