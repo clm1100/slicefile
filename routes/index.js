@@ -31,6 +31,52 @@ router.post('/upload1', upload.single('abc'), function (req, res, next) {
 
 
 
+router.post('/upload3', upload.single('file'), function (req, res, next) {
+  console.log(req.body)
+  // 接受图片唯一标识符号
+    let imgname = req.body.uuidfolder;
+    // 接受切片索引
+    let imgorder = req.body.imgorder;
+    // 建立图片存储目录
+    let imgpath = path.join(__dirname,'..','public/mult',imgname);
+    // 判断目录是否存在，存在的话直接使用并存储切片，不存在的话就新建。
+    if (fs.existsSync(imgpath)) {
+      fs.readFile(req.file.path, function (err, data) {
+        fs.writeFile(path.join(imgpath, imgorder), data, (err) => {
+          if (!err) {
+            res.send("写入后面的文件")
+          }
+        })
+      })
+    } else {
+      fs.mkdirSync(imgpath);
+      fs.readFile(req.file.path, function (err, data) {
+        fs.writeFile(path.join(imgpath, imgorder), data, (err) => {
+          if (!err) {
+            res.send("第一次写入并新建文件夹")
+          }
+        })
+      })
+    }
+})
+
+
+// 合并图片接口：
+router.post('/merge',function(req,res){
+  var id = req.body.id;
+  var folderpath = path.join(__dirname,"..",'public/mult',id);
+  let destinpath = path.join(__dirname,"..",'public/img',id+'.jpg');
+  var dist = '/img/'+id+'.jpg'
+  fs.readdir(folderpath,function(err,arr){
+    let arr2 = arr.map(e=>path.join(folderpath,e));
+    concat(arr2, destinpath, function(err) {
+      if (err) throw err
+      res.send(dist);
+    });
+  })
+})
+
+
 
 
 router.post('/upload2', function (req, res, next) {

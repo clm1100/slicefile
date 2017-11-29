@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>upload</title>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="./uuid.js"></script>
+</head>
+<body>
+    <input type="file" name="file" id="file">
+    <button id="upload">上传</button>
+    <script type="text/javascript">
+        var bytesPerPiece = 1024 * 1024; // 每个文件切片大小定为1MB .
+        var totalPieces;   //切片总数
+        //发送请求
+        $("#upload").click(upload)
+        function upload() {
+            
+            var blob = document.getElementById("file").files[0];
+            // 文件唯一标识符号，防止多个用户一起上传文件时切片混乱
+            var uuidfolder = uuidv1();
+            // 开始切割的位置
+            var start = 0;
+            // 切割的结束位置
+            var end;
+            // 切片的索引
+            var index = 0;
+            // 回调计数器
+            var count = 0;
+            // 文件的大小
+            var filesize = blob.size;
+            // 文件的名称
+            var filename = blob.name;
+            //计算文件切片总数
+            totalPieces = Math.ceil(filesize / bytesPerPiece);
+            // 启动while循环对文件切片
+            while(start < filesize) {
+                // 设置切片的结束位置
+                end = start + bytesPerPiece;
+                // 对最后一片数据进行处理（可以省略）
+                if(end > filesize) {
+                    end = filesize;
+                }
+                // 切割文件
+                var chunk = blob.slice(start,end);//切割文件
+                // 给每一片切片设置名字，名字的值为原始名称加索引，这样做是为了让后端可以按照索引顺序合并图片。
+                var sliceIndex= blob.name + index;
+                // 利用formData来传递数据
+                var formData = new FormData();
+                formData.append("file", chunk, sliceIndex);
+                formData.append("uuidfolder", uuidfolder);
+                formData.append("imgorder", index);
+                $.ajax({
+                    url: '/upload3',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,  // 不处理数据
+                    contentType: false,  // 不设置内容类型
+                }).done(function(res){ 
+                    count++;
+                    if(count==totalPieces){
+                        console.log("上传结束,请求拼接接口，将切片信息拼接完整，返回图片url");
+                        $.post('/merge',{id:uuidfolder},function(data){
+                            console.log(data);
+                        })
+                    }
+
+                }).fail(function(res) {
+                    console.log("上传失败")
+                });
+                start = end;
+                index++;
+            }
+        }
+    </script>
+</body>
+</html>
