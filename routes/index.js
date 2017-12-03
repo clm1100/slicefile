@@ -6,6 +6,11 @@ var fs = require('fs');
 const formidable = require('formidable')
 const concat = require('concat-files')
 const opn = require('opn')
+const md5 = require('md5');
+const SparkMD5 = require("spark-md5");
+
+var crypto = require('crypto');
+
 
 let uploadDir = './public/uploads'
 
@@ -30,7 +35,7 @@ router.post('/upload1', upload.single('abc'), function (req, res, next) {
 })
 
 
-
+// 接收切片信息接口
 router.post('/upload3', upload.single('file'), function (req, res, next) {
   console.log(req.body)
   // 接受图片唯一标识符号
@@ -63,10 +68,10 @@ router.post('/upload3', upload.single('file'), function (req, res, next) {
 
 // 合并图片接口：
 router.post('/merge',function(req,res){
-  var id = req.body.id;
-  var folderpath = path.join(__dirname,"..",'public/mult',id);
+  let id = req.body.id;
+  let folderpath = path.join(__dirname,"..",'public/mult',id);
   let destinpath = path.join(__dirname,"..",'public/img',id+'.jpg');
-  var dist = '/img/'+id+'.jpg'
+  let dist = '/img/'+id+'.jpg'
   fs.readdir(folderpath,function(err,arr){
     let arr2 = arr.map(e=>path.join(folderpath,e));
     concat(arr2, destinpath, function(err) {
@@ -111,7 +116,43 @@ router.post('/upload2', function (req, res, next) {
   })
 })
 
+// 合并图片接口,配合uploader2：
+router.post('/merge2',function(req,res){
+  let id = req.body.id;
+  let spark = req.body.spark;
+  let folderpath = path.join(__dirname,"..",'public/uploads',id);
+  let destinpath = path.join(__dirname,"..",'public/img',id+'.jpg');
+  let dist = '/img/'+id+'.jpg'
+  fs.readdir(folderpath,function(err,arr){
+    let arr2 = arr.map(e=>path.join(folderpath,e));
+    concat(arr2, destinpath, function(err) {
+      // fs.readFile(destinpath,function(err,data){
+        
+      //     if (err) throw err
+      //     res.send(dist);
+      // })
+      var md5sum = crypto.createHash('md5');
 
+      var stream = fs.createReadStream(destinpath);
+      stream.on('data', function(chunk) {
+          md5sum.update(chunk);
+      });
+      stream.on('end', function() {
+          str = md5sum.digest('hex');
+          if (err) throw err
+          console.log(str,spark);
+          if(str = spark){
+            res.send(dist);
+          }
+         
+      });
+
+
+
+      
+    });
+  })
+})
 
 
 router.post('/upload', upload.single('abc'), function (req, res, next) {
