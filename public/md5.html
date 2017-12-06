@@ -36,24 +36,31 @@
     }
     
     $(function () {
+        // 1.实例化文件读取方法对象
         var reader = new FileReader();
+        // 2.实例化读取buffer MD5方法
         var spark = new SparkMD5.ArrayBuffer();
         var input = document.querySelector('input');
+        // 3.监听上传文件input的change事件
         input.addEventListener('change', function () {
+            //4. 获取文件blob信息
             var file = this.files[0];
             console.log(file);
+            // 5.将blob读取为buffer信息，这一步是异步操作
             reader.readAsArrayBuffer(file);
             // reader.readAsBinaryString(file);
         });
+        //  6.监听读取blob信息完成事件
         reader.addEventListener("load", function (e) {
             var chunksize = 1 * 1024 * 1024;
+            // 7、将buffer信息转化为blob，为了传输
             var blob = new Blob([e.target.result]);
             console.log(blob.toString())
+            ///8、用spark直接读取文件的MD5值，
             spark.append(e.target.result);
-            // console.log("spark",spark.end());
+            ///9、读取完成，用一个变量来接收
             let SparkMD5 = spark.end();
             console.log(SparkMD5)
-            // return false
             var count = Math.ceil(blob.size / chunksize);
             var uuidfolder = uuidv1();
             var arr = []
@@ -69,6 +76,7 @@
                 }
             }
             main().then(function () {
+                //10、 将md5值发送到服务器端。
                 $.post('/merge2',{id:uuidfolder,spark:SparkMD5},function(data){
                             console.log(data);
                 })

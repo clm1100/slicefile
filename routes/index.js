@@ -127,29 +127,30 @@ router.post('/merge2',function(req,res){
     let arr2 = arr.map(e=>path.join(folderpath,e));
     concat(arr2, destinpath, function(err) {
       // fs.readFile(destinpath,function(err,data){
-        
       //     if (err) throw err
       //     res.send(dist);
       // })
+      // 1、此处使用了两个库来读取文件的MD5值
+      // 分别是md5和spark-md5(和前端用的同样的库)
+       
       var md5sum = crypto.createHash('md5');
-
+      var frontspark = new SparkMD5.ArrayBuffer();
+      // 2、由于读取文件的MD5值非常耗时，
+      // 所以这里应用了文件的流模式读取文件的MD5值
       var stream = fs.createReadStream(destinpath);
       stream.on('data', function(chunk) {
           md5sum.update(chunk);
+          frontspark.append(chunk)
       });
       stream.on('end', function() {
           str = md5sum.digest('hex');
+          str2 = frontspark.end()
           if (err) throw err
-          console.log(str,spark);
+          console.log(str,spark,str2);
           if(str = spark){
             res.send(dist);
-          }
-         
-      });
-
-
-
-      
+          }    
+      });    
     });
   })
 })
